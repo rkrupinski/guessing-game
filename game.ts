@@ -60,20 +60,22 @@ export const game = (state: GameState, action: GameAction): GameState => {
           msg: 'You win',
         };
 
-      const prev = state[$$prev].length
-        ? state[$$prev][state[$$prev].length - 1]
-        : null;
+      const isFirstAttempt = !state[$$prev].length;
+
+      const prev = state[$$prev][state[$$prev].length - 1];
 
       const repeated = state[$$prev].includes(action.value);
 
       const hintIgnored =
-        typeof prev === 'number' &&
+        !isFirstAttempt &&
         ((action.value < prev && action.value < state[$$winningNumber]) ||
           (action.value > prev && action.value > state[$$winningNumber]));
 
       const isDumbAttempt = repeated || hintIgnored;
 
-      const dumpAttempts = state[$$dumbAttempts] + 1;
+      const dumpAttempts = isDumbAttempt
+        ? state[$$dumbAttempts] + 1
+        : state[$$dumbAttempts];
 
       if (dumpAttempts === MAX_DUMB_ATTEMPTS)
         return {
@@ -83,22 +85,24 @@ export const game = (state: GameState, action: GameAction): GameState => {
         };
 
       if (attempts < MAX_ATTEMPTS) {
+        const prefix = isDumbAttempt
+          ? 'Dumb! '
+          : !isFirstAttempt
+          ? 'Nice try. '
+          : '';
+
         const hint =
           action.value > state[$$winningNumber] ? 'smaller' : 'greater';
 
-        const msg = `${
-          isDumbAttempt ? 'Dumb! ' : ''
-        }Try again (a ${hint} number this time):`;
+        const msg = `${prefix}Try again (a ${hint} number this time):`;
 
         return {
           ...state,
           type: 'playing',
           msg,
+          [$$dumbAttempts]: dumpAttempts,
           [$$attempts]: attempts,
           [$$prev]: [...state[$$prev], action.value],
-          [$$dumbAttempts]: isDumbAttempt
-            ? state[$$dumbAttempts] + 1
-            : state[$$dumbAttempts],
         };
       }
 
