@@ -1,1 +1,3 @@
-# guessing-game
+# Guessing game
+
+See commits for details.
