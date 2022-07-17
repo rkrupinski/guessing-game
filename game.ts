@@ -2,7 +2,7 @@ import { draw } from './utils';
 
 export const MIN = 1;
 export const MAX = 100;
-export const MAX_ATTEMPTS = 3;
+export const MAX_ATTEMPTS = 5;
 
 const $$winningNumber: unique symbol = Symbol('$$winningNumber');
 type $$winningNumber = typeof $$winningNumber;
@@ -10,9 +10,13 @@ type $$winningNumber = typeof $$winningNumber;
 const $$attempts: unique symbol = Symbol('$$attempts');
 type $$attempts = typeof $$attempts;
 
+const $$prev: unique symbol = Symbol('$$prev');
+type $$prev = typeof $$prev;
+
 type InternalGameState = {
   [$$winningNumber]: number;
   [$$attempts]: number;
+  [$$prev]: number[];
 };
 
 export type GameState =
@@ -39,6 +43,7 @@ export const makeInitialState = (): GameState => ({
   msg: `Guess a number between ${MIN} and ${MAX}:`,
   [$$winningNumber]: draw(MIN, MAX),
   [$$attempts]: 0,
+  [$$prev]: [],
 });
 
 export const game = (state: GameState, action: GameAction): GameState => {
@@ -51,19 +56,24 @@ export const game = (state: GameState, action: GameAction): GameState => {
           ...state,
           type: 'game_over',
           msg: 'You win',
-          [$$attempts]: attempts,
         };
 
       if (attempts < MAX_ATTEMPTS) {
-        const msg = `Try again (a ${
-          action.value > state[$$winningNumber] ? 'smaller' : 'greater'
-        } number this time):`;
+        const dumb = state[$$prev].includes(action.value);
+
+        const hint =
+          action.value > state[$$winningNumber] ? 'smaller' : 'greater';
+
+        const msg = `${
+          dumb ? 'Dumb! ' : ''
+        }Try again (a ${hint} number this time):`;
 
         return {
           ...state,
           type: 'playing',
           msg,
           [$$attempts]: attempts,
+          [$$prev]: [...state[$$prev], action.value],
         };
       }
 
@@ -71,7 +81,6 @@ export const game = (state: GameState, action: GameAction): GameState => {
         ...state,
         type: 'game_over',
         msg: 'You lose',
-        [$$attempts]: attempts,
       };
     }
     default:
