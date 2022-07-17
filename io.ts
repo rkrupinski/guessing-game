@@ -3,7 +3,7 @@ import readline from 'readline';
 export type IO = {
   open: () => Promise<void>;
   prompt: (msg: string) => Promise<number>;
-  writeln: (msg: string) => Promise<void>;
+  write: (msg: string) => Promise<void>;
   close: () => Promise<void>;
 };
 
@@ -30,7 +30,7 @@ export const makeStdIO = (): IO => {
       });
     },
 
-    async writeln(msg: string) {
+    async write(msg: string) {
       io.write(`${msg}\n`);
     },
   };

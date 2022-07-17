@@ -12,7 +12,7 @@ jest.mock('./utils', () => ({
 }));
 
 const applyActions = (actions: GameAction[]) =>
-  actions.reduce((acc, curr) => game(acc, curr), makeInitialState());
+  actions.reduce(game, makeInitialState());
 
 describe('game', () => {
   it('should initialize state', () => {

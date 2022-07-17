@@ -10,14 +10,10 @@ type $$dumbAttempts = typeof $$dumbAttempts;
 const $$attempts: unique symbol = Symbol('$$attempts');
 type $$attempts = typeof $$attempts;
 
-const $$prev: unique symbol = Symbol('$$prev');
-type $$prev = typeof $$prev;
-
 type InternalGameState = {
   [$$winningNumber]: number;
   [$$dumbAttempts]: number;
-  [$$attempts]: number;
-  [$$prev]: number[];
+  [$$attempts]: number[];
 };
 
 export type GameState =
@@ -44,15 +40,12 @@ export const makeInitialState = (): GameState => ({
   msg: `Guess a number between ${MIN} and ${MAX}:`,
   [$$winningNumber]: draw(MIN, MAX),
   [$$dumbAttempts]: 0,
-  [$$attempts]: 0,
-  [$$prev]: [],
+  [$$attempts]: [],
 });
 
 export const game = (state: GameState, action: GameAction): GameState => {
   switch (action.type) {
     case 'input': {
-      const attempts = state[$$attempts] + 1;
-
       if (action.value === state[$$winningNumber])
         return {
           ...state,
@@ -60,11 +53,11 @@ export const game = (state: GameState, action: GameAction): GameState => {
           msg: 'You win',
         };
 
-      const isFirstAttempt = !state[$$prev].length;
+      const isFirstAttempt = !state[$$attempts].length;
 
-      const prev = state[$$prev][state[$$prev].length - 1];
+      const prev = state[$$attempts][state[$$attempts].length - 1];
 
-      const repeated = state[$$prev].includes(action.value);
+      const repeated = state[$$attempts].includes(action.value);
 
       const hintIgnored =
         !isFirstAttempt &&
@@ -73,18 +66,20 @@ export const game = (state: GameState, action: GameAction): GameState => {
 
       const isDumbAttempt = repeated || hintIgnored;
 
-      const dumpAttempts = isDumbAttempt
+      const dumbAttempts = isDumbAttempt
         ? state[$$dumbAttempts] + 1
         : state[$$dumbAttempts];
 
-      if (dumpAttempts === MAX_DUMB_ATTEMPTS)
+      if (dumbAttempts === MAX_DUMB_ATTEMPTS)
         return {
           ...state,
           type: 'game_over',
           msg: "This isn't working",
         };
 
-      if (attempts < MAX_ATTEMPTS) {
+      const attempts = [...state[$$attempts], action.value];
+
+      if (attempts.length < MAX_ATTEMPTS) {
         const prefix = isDumbAttempt
           ? 'Dumb! '
           : !isFirstAttempt
@@ -100,9 +95,8 @@ export const game = (state: GameState, action: GameAction): GameState => {
           ...state,
           type: 'playing',
           msg,
-          [$$dumbAttempts]: dumpAttempts,
+          [$$dumbAttempts]: dumbAttempts,
           [$$attempts]: attempts,
-          [$$prev]: [...state[$$prev], action.value],
         };
       }
 

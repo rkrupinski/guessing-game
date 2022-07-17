@@ -13,6 +13,6 @@ export const runtime = async (io: IO) => {
     });
   }
 
-  await io.writeln(state.msg);
+  await io.write(state.msg);
   await io.close();
 };
