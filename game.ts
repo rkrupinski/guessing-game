@@ -1,8 +1,5 @@
 import { draw } from './utils';
-
-export const MIN = 1;
-export const MAX = 100;
-export const MAX_ATTEMPTS = 5;
+import { MIN, MAX, MAX_ATTEMPTS } from './config';
 
 const $$winningNumber: unique symbol = Symbol('$$winningNumber');
 type $$winningNumber = typeof $$winningNumber;
@@ -59,13 +56,24 @@ export const game = (state: GameState, action: GameAction): GameState => {
         };
 
       if (attempts < MAX_ATTEMPTS) {
-        const dumb = state[$$prev].includes(action.value);
+        const prev = state[$$prev].length
+          ? state[$$prev][state[$$prev].length - 1]
+          : null;
+
+        const repeated = state[$$prev].includes(action.value);
+
+        const hintIgnored =
+          typeof prev === 'number' &&
+          ((action.value < prev && action.value < state[$$winningNumber]) ||
+            (action.value > prev && action.value > state[$$winningNumber]));
+
+        const isDumbAttempt = repeated || hintIgnored;
 
         const hint =
           action.value > state[$$winningNumber] ? 'smaller' : 'greater';
 
         const msg = `${
-          dumb ? 'Dumb! ' : ''
+          isDumbAttempt ? 'Dumb! ' : ''
         }Try again (a ${hint} number this time):`;
 
         return {
