@@ -1,7 +1,7 @@
 import { draw } from './utils';
 
 export const MIN = 1;
-export const MAX = 10;
+export const MAX = 100;
 export const MAX_ATTEMPTS = 3;
 
 const $$winningNumber: unique symbol = Symbol('$$winningNumber');
@@ -54,13 +54,18 @@ export const game = (state: GameState, action: GameAction): GameState => {
           [$$attempts]: attempts,
         };
 
-      if (attempts < MAX_ATTEMPTS)
+      if (attempts < MAX_ATTEMPTS) {
+        const msg = `Try again (a ${
+          action.value > state[$$winningNumber] ? 'smaller' : 'greater'
+        } number this time):`;
+
         return {
           ...state,
           type: 'playing',
-          msg: 'Try again:',
+          msg,
           [$$attempts]: attempts,
         };
+      }
 
       return {
         ...state,
